@@ -8,6 +8,7 @@ const addHeaderAndCheckPermissions = (app) =>
         if (
             (req.originalUrl === "/") ||
             (req.originalUrl === "/admin/login/") ||
+            (req.originalUrl.slice(0, 6) === "/media" && req.method === "GET") ||
             (req.originalUrl === "/user/" && req.method === "POST")
         )
         {
