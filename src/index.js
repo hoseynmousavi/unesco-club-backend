@@ -10,6 +10,7 @@ import addHeaderAndCheckPermissions from "./functions/addHeaderAndCheckPermissio
 import adminRouter from "./routes/adminRouter"
 import userRouter from "./routes/userRouter"
 import documentRouter from "./routes/documentRouter"
+import fileRouter from "./routes/fileRouter"
 
 // Normal Things Never Leave Us Alone ...
 const app = express()
@@ -30,6 +31,7 @@ rootRouter(app)
 adminRouter(app)
 userRouter(app)
 documentRouter(app)
+fileRouter(app)
 notFoundRooter(app) // & at the end
 
 // Eventually Run The Server
