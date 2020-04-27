@@ -31,7 +31,7 @@ rootRouter(app)
 adminRouter(app)
 userRouter(app)
 documentRouter(app)
-fileRouter(app)
+fileRouter(app, __dirname)
 notFoundRooter(app) // & at the end
 
 // Eventually Run The Server
