@@ -8,7 +8,7 @@ const addHeaderAndCheckPermissions = (app) =>
         if (
             (req.originalUrl === "/") ||
             (req.originalUrl === "/admin/login/") ||
-            (req.originalUrl === "/user/")
+            (req.originalUrl === "/user/" && req.method === "POST")
         )
         {
             if (req.headers.authorization)
@@ -16,7 +16,7 @@ const addHeaderAndCheckPermissions = (app) =>
                 tokenHelper.decodeToken(req.headers.authorization)
                     .then((payload) =>
                     {
-                        req.headers.authorization = {...payload}
+                        req.headers.authorization = {...payload.toJSON()}
                         next()
                     })
                     .catch(() => next())
@@ -30,7 +30,7 @@ const addHeaderAndCheckPermissions = (app) =>
                 tokenHelper.decodeToken(req.headers.authorization)
                     .then((payload) =>
                     {
-                        req.headers.authorization = {...payload}
+                        req.headers.authorization = {...payload.toJSON()}
                         next()
                     })
                     .catch((result) => res.status(result.status || 403).send(result.err))

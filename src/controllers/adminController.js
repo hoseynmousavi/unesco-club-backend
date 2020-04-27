@@ -21,7 +21,7 @@ const adminLogin = (req, res) =>
     const {username, password} = req.body
     if (username && password)
     {
-        getAdminFunc({username, password})
+        getAdminFunc({username, password, fields: "name username created_date"})
             .then(result =>
                 tokenHelper.encodeToken({username, password})
                     .then(token => res.send({...result.takenAdmin.toJSON(), token}))
@@ -32,11 +32,21 @@ const adminLogin = (req, res) =>
     else res.status(400).send({message: "send username && password!"})
 }
 
-const getAdminFunc = ({username, password}) =>
+const verifyToken = (req, res) =>
+{
+    const {_id} = req.headers.authorization
+    admin.findById(_id, "name username created_date", null, (err, takenAdmin) =>
+    {
+        if (err) res.status(500).send(err)
+        else res.send(takenAdmin.toJSON())
+    })
+}
+
+const getAdminFunc = ({username, password, fields, options}) =>
 {
     return new Promise((resolve, reject) =>
     {
-        admin.findOne({username, password}, (err, takenAdmin) =>
+        admin.findOne({username, password}, fields, options, (err, takenAdmin) =>
         {
             if (err) reject({status: 400, err})
             else if (!takenAdmin) reject({status: 404, err: {message: "not found!"}})
@@ -48,6 +58,7 @@ const getAdminFunc = ({username, password}) =>
 const adminController = {
     addAdmin,
     adminLogin,
+    verifyToken,
     getAdminFunc,
 }
 

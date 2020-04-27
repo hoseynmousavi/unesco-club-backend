@@ -4,12 +4,28 @@ import saveFile from "../functions/saveFile"
 
 const user = mongoose.model("user", userModel)
 
+const getUsers = (req, res) =>
+{
+    if (req.headers.authorization && req.headers.authorization.username)
+    {
+        const limit = parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 5
+        const skip = (req.query.page - 1 > 0 ? req.query.page - 1 : 0) * limit
+        user.find({is_deleted: false}, null, {sort: "-created_date", skip, limit}, (err, users) =>
+        {
+            if (err) res.status(400).send(err)
+            else res.send(users)
+        })
+    }
+    else res.status(403).send({message: "you don't have permission babe!"})
+}
+
 const signUp = (req, res) =>
 {
     delete req.body.is_verified
     delete req.body.phone_verified
     delete req.body.email_verified
     delete req.body.created_date
+    delete req.body.is_deleted
 
     saveFile({file: req.files ? req.files.avatar : null, folder: "pictures"})
         .then(avatar =>
@@ -32,7 +48,7 @@ const verifyUser = (req, res) =>
         if (user_id)
         {
             user.findOneAndUpdate(
-                {_id: user_id},
+                {_id: user_id, is_deleted: false},
                 {is_verified: true},
                 {new: true, useFindAndModify: false, runValidators: true},
                 (err, _) =>
@@ -47,9 +63,34 @@ const verifyUser = (req, res) =>
     else res.status(403).send({message: "don't have permission babe!"})
 }
 
+const removeUser = (req, res) =>
+{
+    if (req.headers.authorization.username)
+    {
+        const {user_id} = req.body
+        if (user_id)
+        {
+            user.findOneAndUpdate(
+                {_id: user_id},
+                {is_deleted: true},
+                {new: true, useFindAndModify: false, runValidators: true},
+                (err, _) =>
+                {
+                    if (err) res.status(400).send(err)
+                    else res.send({message: "done!"})
+                },
+            )
+        }
+        else res.status(400).send({message: "send user_id"})
+    }
+    else res.status(403).send({message: "don't have permission babe!"})
+}
+
 const userController = {
+    getUsers,
     signUp,
     verifyUser,
+    removeUser,
 }
 
 export default userController
