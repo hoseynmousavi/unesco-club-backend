@@ -38,10 +38,17 @@ const removeCategory = (req, res) =>
         const {category_id} = req.body
         if (category_id)
         {
-            category.deleteOne({_id: category_id}, err =>
+            documentCategory.find({category_id}, (err, records) =>
             {
-                if (err) res.status(400).send(err)
-                else res.send({message: "done!"})
+                if (records.length > 0) res.status(403).send({message: "it is using!"})
+                else
+                {
+                    category.deleteOne({_id: category_id}, err =>
+                    {
+                        if (err) res.status(400).send(err)
+                        else res.send({message: "done!"})
+                    })
+                }
             })
         }
         else res.status(400).send({message: "send category_id!"})
