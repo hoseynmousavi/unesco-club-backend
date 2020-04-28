@@ -2,9 +2,12 @@ import mongoose from "mongoose"
 
 const schema = mongoose.Schema
 
-const pictureModel = new schema({
+const documentFilmModel = new schema({
     document_id: {
         type: schema.Types.ObjectId,
+    },
+    description: {
+        type: String,
     },
     file: {
         type: String,
@@ -15,4 +18,4 @@ const pictureModel = new schema({
     },
 })
 
-export default pictureModel
+export default documentFilmModel

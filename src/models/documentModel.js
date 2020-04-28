@@ -12,17 +12,15 @@ const documentModel = new schema({
     thumbnail: {
         type: String,
     },
-    film: {
-        type: String,
-    },
     description: {
         type: String,
     },
-    category_id: {
-        type: schema.Types.ObjectId,
-    },
     location: {
         type: String,
+    },
+    is_deleted: {
+        type: Boolean,
+        default: false,
     },
     created_date: {
         type: Date,
