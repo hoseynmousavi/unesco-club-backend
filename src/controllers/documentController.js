@@ -127,6 +127,7 @@ const addDocument = (req, res) =>
                     if (err) res.status(400).send(err)
                     else
                     {
+                        const newDocument = {...createdDocument.toJSON()}
                         const categories = req.body.categories ? JSON.parse(req.body.categories) : []
 
                         let videos = []
@@ -143,9 +144,7 @@ const addDocument = (req, res) =>
                             keys.forEach(key => pictures.push({file: req.files[key], description: req.body[key]}))
                         }
 
-                        saveCategories(categories, createdDocument._id).then(() => savePictures(pictures, createdDocument._id).then(() => saveFilms(videos, createdDocument._id))).then(() =>
-                            res.send("fuck it worked"),
-                        )
+                        saveCategories(categories, createdDocument._id, newDocument).then(() => savePictures(pictures, createdDocument._id, newDocument).then(() => saveFilms(videos, createdDocument._id, newDocument).then(() => res.send(newDocument))))
                     }
                 })
             })
@@ -154,7 +153,7 @@ const addDocument = (req, res) =>
     else res.status(403).send({message: "don't have permission babe!"})
 }
 
-const saveCategories = (categories, document_id) =>
+const saveCategories = (categories, document_id, newDocument) =>
 {
     return new Promise(resolve =>
     {
@@ -164,6 +163,7 @@ const saveCategories = (categories, document_id) =>
             {
                 new documentCategory({category_id: item, document_id}).save(() =>
                 {
+                    newDocument.categories = [...newDocument.categories || [], item]
                     if (index === categories.length - 1) resolve()
                 })
             })
@@ -172,7 +172,7 @@ const saveCategories = (categories, document_id) =>
     })
 }
 
-const savePictures = (pictures, document_id) =>
+const savePictures = (pictures, document_id, newDocument) =>
 {
     return new Promise(resolve =>
     {
@@ -181,14 +181,18 @@ const savePictures = (pictures, document_id) =>
             pictures.forEach((item, index) =>
             {
                 saveFile({file: item.file, folder: "pictures"})
-                    .then(file => new documentPicture({file, description: item.description, document_id}).save(() => index === pictures.length - 1 && resolve()))
+                    .then(file => new documentPicture({file, description: item.description, document_id}).save((err, created) =>
+                    {
+                        newDocument.pictures = [...newDocument.pictures || [], created]
+                        if (index === pictures.length - 1) resolve()
+                    }))
             })
         }
         else resolve()
     })
 }
 
-const saveFilms = (films, document_id) =>
+const saveFilms = (films, document_id, newDocument) =>
 {
     return new Promise(resolve =>
     {
@@ -197,7 +201,11 @@ const saveFilms = (films, document_id) =>
             films.forEach((item, index) =>
             {
                 saveFile({file: item.file, folder: "videos"})
-                    .then(file => new documentFilm({file, description: item.description, document_id}).save(() => index === films.length - 1 && resolve()))
+                    .then(file => new documentFilm({file, description: item.description, document_id}).save((err, created) =>
+                    {
+                        newDocument.films = [...newDocument.films || [], created]
+                        if (index === films.length - 1) resolve()
+                    }))
             })
         }
         else resolve()
