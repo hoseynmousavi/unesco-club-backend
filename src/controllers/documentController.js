@@ -3,10 +3,14 @@ import documentModel from "../models/documentModel"
 import saveFile from "../functions/saveFile"
 import categoryModel from "../models/categoryModel"
 import documentCategoryModel from "../models/documentCategoryModel"
+import documentFilmModel from "../models/documentFilmModel"
+import documentPictureModel from "../models/documentPictureModel"
 
 const document = mongoose.model("document", documentModel)
 const category = mongoose.model("category", categoryModel)
 const documentCategory = mongoose.model("documentCategory", documentCategoryModel)
+const documentFilm = mongoose.model("documentFilm", documentFilmModel)
+const documentPicture = mongoose.model("documentPicture", documentPictureModel)
 
 const addCategory = (req, res) =>
 {
@@ -56,6 +60,17 @@ const getCategories = (req, res) =>
     })
 }
 
+const getDocuments = (req, res) =>
+{
+    const limit = parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 5
+    const skip = (req.query.page - 1 > 0 ? req.query.page - 1 : 0) * limit
+    document.find(null, null, {sort: "-created_date", skip, limit}, (err, documents) =>
+    {
+        if (err) res.status(400).send(err)
+        else res.send(documents)
+    })
+}
+
 const addDocument = (req, res) =>
 {
     if (req.headers.authorization.username)
@@ -69,9 +84,25 @@ const addDocument = (req, res) =>
                     if (err) res.status(400).send(err)
                     else
                     {
-                        res.send(createdDocument)
-                        const categories = JSON.parse(req.body.categories)
-                        categories.forEach(item => new documentCategory({category_id: item, document_id: createdDocument._id}).save())
+                        const categories = req.body.categories ? JSON.parse(req.body.categories) : []
+
+                        let videos = []
+                        if (req.files)
+                        {
+                            const keys = Object.keys(req.files).filter(file => file.includes("film"))
+                            keys.forEach(key => videos.push({file: req.files[key], description: req.body[key]}))
+                        }
+
+                        let pictures = []
+                        if (req.files)
+                        {
+                            const keys = Object.keys(req.files).filter(file => file.includes("picture"))
+                            keys.forEach(key => pictures.push({file: req.files[key], description: req.body[key]}))
+                        }
+
+                        saveCategories(categories, createdDocument._id).then(() => savePictures(pictures, createdDocument._id).then(() => saveFilms(videos, createdDocument._id))).then(() =>
+                            res.send("fuck it worked"),
+                        )
                     }
                 })
             })
@@ -80,10 +111,61 @@ const addDocument = (req, res) =>
     else res.status(403).send({message: "don't have permission babe!"})
 }
 
+const saveCategories = (categories, document_id) =>
+{
+    return new Promise(resolve =>
+    {
+        if (categories.length > 0)
+        {
+            categories.forEach((item, index) =>
+            {
+                new documentCategory({category_id: item, document_id}).save(() =>
+                {
+                    if (index === categories.length - 1) resolve()
+                })
+            })
+        }
+        else resolve()
+    })
+}
+
+const savePictures = (pictures, document_id) =>
+{
+    return new Promise(resolve =>
+    {
+        if (pictures.length > 0)
+        {
+            pictures.forEach((item, index) =>
+            {
+                saveFile({file: item.file, folder: "pictures"})
+                    .then(file => new documentPicture({file, description: item.description, document_id}).save(() => index === pictures.length - 1 && resolve()))
+            })
+        }
+        else resolve()
+    })
+}
+
+const saveFilms = (films, document_id) =>
+{
+    return new Promise(resolve =>
+    {
+        if (films.length > 0)
+        {
+            films.forEach((item, index) =>
+            {
+                saveFile({file: item.file, folder: "videos"})
+                    .then(file => new documentFilm({file, description: item.description, document_id}).save(() => index === films.length - 1 && resolve()))
+            })
+        }
+        else resolve()
+    })
+}
+
 const documentController = {
     addCategory,
     removeCategory,
     getCategories,
+    getDocuments,
     addDocument,
 }
 
