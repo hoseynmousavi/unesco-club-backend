@@ -60,14 +60,57 @@ const getCategories = (req, res) =>
     })
 }
 
-const getDocuments = (req, res) =>
+const getDocuments = (req, res) => // it could be without all of these queries if in front these shits don't come up all together
 {
     const limit = parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 5
     const skip = (req.query.page - 1 > 0 ? req.query.page - 1 : 0) * limit
     document.find(null, null, {sort: "-created_date", skip, limit}, (err, documents) =>
     {
         if (err) res.status(400).send(err)
-        else res.send(documents)
+        else
+        {
+            documentPicture.find({document_id: {$in: documents.reduce((sum, doc) => [...sum, doc._id], [])}}, (err, pictures) =>
+            {
+                if (err) res.status(400).send(err)
+                else
+                {
+                    documentFilm.find({document_id: {$in: documents.reduce((sum, doc) => [...sum, doc._id], [])}}, (err, films) =>
+                    {
+                        if (err) res.status(400).send(err)
+                        else
+                        {
+                            documentCategory.find({document_id: {$in: documents.reduce((sum, doc) => [...sum, doc._id], [])}}, (err, docCats) =>
+                            {
+                                if (err) res.status(400).send(err)
+                                else
+                                {
+                                    category.find({_id: {$in: docCats.reduce((sum, docCat) => [...sum, docCat.category_id], [])}}, (err, categories) =>
+                                    {
+                                        if (err) res.status(400).send(err)
+                                        else
+                                        {
+                                            const documentsObject = documents.reduce((sum, doc) => ({...sum, [doc._id]: doc.toJSON()}), {})
+                                            const categoriesObject = categories.reduce((sum, cat) => ({...sum, [cat._id]: cat.toJSON()}), {})
+                                            pictures.forEach(pic =>
+                                            {
+                                                documentsObject[pic.document_id] = {...documentsObject[pic.document_id], pictures: [...documentsObject[pic.document_id].pictures || [], {...pic.toJSON()}]}
+                                            })
+                                            films.forEach(film =>
+                                                documentsObject[film.document_id] = {...documentsObject[film.document_id], films: [...documentsObject[film.document_id].pictures || [], {...film.toJSON()}]},
+                                            )
+                                            docCats.forEach(docCat =>
+                                                documentsObject[docCat.document_id] = {...documentsObject[docCat.document_id], categories: [...documentsObject[docCat.document_id].categories || [], {...categoriesObject[docCat.category_id]}]},
+                                            )
+                                            res.send(Object.values(documentsObject))
+                                        }
+                                    })
+                                }
+                            })
+                        }
+                    })
+                }
+            })
+        }
     })
 }
 
