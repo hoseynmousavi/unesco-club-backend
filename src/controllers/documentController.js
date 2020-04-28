@@ -64,7 +64,7 @@ const getDocuments = (req, res) => // it could be without all of these queries i
 {
     const limit = parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 5
     const skip = (req.query.page - 1 > 0 ? req.query.page - 1 : 0) * limit
-    document.find(null, null, {sort: "-created_date", skip, limit}, (err, documents) =>
+    document.find({is_deleted: false}, null, {sort: "-created_date", skip, limit}, (err, documents) =>
     {
         if (err) res.status(400).send(err)
         else
