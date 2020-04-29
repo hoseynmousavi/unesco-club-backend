@@ -103,7 +103,7 @@ const getDocuments = (req, res) => // it could be without all of these queries i
                                                 documentsObject[pic.document_id] = {...documentsObject[pic.document_id], pictures: [...documentsObject[pic.document_id].pictures || [], {...pic.toJSON()}]}
                                             })
                                             films.forEach(film =>
-                                                documentsObject[film.document_id] = {...documentsObject[film.document_id], films: [...documentsObject[film.document_id].pictures || [], {...film.toJSON()}]},
+                                                documentsObject[film.document_id] = {...documentsObject[film.document_id], films: [...documentsObject[film.document_id].films || [], {...film.toJSON()}]},
                                             )
                                             docCats.forEach(docCat =>
                                                 documentsObject[docCat.document_id] = {...documentsObject[docCat.document_id], categories: [...documentsObject[docCat.document_id].categories || [], {...categoriesObject[docCat.category_id]}]},
@@ -310,9 +310,11 @@ const updateDocument = (req, res) =>
         saveFile({file: req.files ? req.files.thumbnail : null, folder: "pictures"})
             .then(thumbnail =>
             {
+                let updateTemp = {...req.body}
+                if (thumbnail) updateTemp.thumbnail = thumbnail
                 document.findOneAndUpdate(
                     {_id: document_id},
-                    {...req.body, thumbnail},
+                    updateTemp,
                     {new: true, useFindAndModify: false, runValidators: true},
                     (err, updated) =>
                     {
