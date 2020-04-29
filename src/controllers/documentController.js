@@ -219,12 +219,56 @@ const saveFilms = (films, document_id, newDocument) =>
     })
 }
 
+const getDocumentById = (req, res) =>
+{
+    const {document_id} = req.params
+    document.findOne({is_deleted: false, _id: document_id}, (err, takenDocument) =>
+    {
+        if (err) res.status(400).send(err)
+        else
+        {
+            documentPicture.find({document_id: takenDocument._id}, (err, pictures) =>
+            {
+                if (err) res.status(400).send(err)
+                else
+                {
+                    documentFilm.find({document_id: takenDocument._id}, (err, films) =>
+                    {
+                        if (err) res.status(400).send(err)
+                        else
+                        {
+                            documentCategory.find({document_id: takenDocument._id}, (err, docCats) =>
+                            {
+                                if (err) res.status(400).send(err)
+                                else
+                                {
+                                    category.find({_id: {$in: docCats.reduce((sum, docCat) => [...sum, docCat.category_id], [])}}, (err, categories) =>
+                                    {
+                                        if (err) res.status(400).send(err)
+                                        else
+                                        {
+                                            let documentObject = takenDocument.toJSON()
+                                            documentObject = {...documentObject, pictures, films, categories}
+                                            res.send(documentObject)
+                                        }
+                                    })
+                                }
+                            })
+                        }
+                    })
+                }
+            })
+        }
+    })
+}
+
 const documentController = {
     addCategory,
     removeCategory,
     getCategories,
     getDocuments,
     addDocument,
+    getDocumentById,
 }
 
 export default documentController

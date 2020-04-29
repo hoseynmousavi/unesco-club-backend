@@ -10,6 +10,9 @@ const documentRouter = (app) =>
         .get(documentController.getCategories)
         .post(documentController.addCategory)
         .delete(documentController.removeCategory)
+
+    app.route("/document/:document_id")
+        .get(documentController.getDocumentById)
 }
 
 export default documentRouter
