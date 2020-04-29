@@ -302,15 +302,112 @@ const deleteDocumentCategory = (req, res) =>
     else res.status(403).send({message: "don't have permission babe!"})
 }
 
+const updateDocument = (req, res) =>
+{
+    if (req.headers.authorization.username)
+    {
+        const {document_id} = req.body
+        saveFile({file: req.files ? req.files.thumbnail : null, folder: "pictures"})
+            .then(thumbnail =>
+            {
+                document.findOneAndUpdate(
+                    {_id: document_id},
+                    {...req.body, thumbnail},
+                    {new: true, useFindAndModify: false, runValidators: true},
+                    (err, updated) =>
+                    {
+                        if (err) res.status(400).send(err)
+                        else res.send(updated)
+                    },
+                )
+            })
+            .catch(err => res.status(500).send(err))
+    }
+    else res.status(403).send({message: "don't have permission babe!"})
+}
+
+const addDocumentPicture = (req, res) =>
+{
+    if (req.headers.authorization.username)
+    {
+        const {document_id, description} = req.body
+        const file = req.files ? req.files.file : null
+        if (file && document_id)
+        {
+            saveFile({file: file, folder: "pictures"})
+                .then(file => new documentPicture({file, description, document_id}).save((err, created) =>
+                {
+                    if (err) res.status(400).send(err)
+                    else res.send(created)
+                }))
+        }
+        else res.status.send({message: "please send document_id && file"})
+    }
+    else res.status(403).send({message: "don't have permission babe!"})
+}
+
+const removeDocumentPicture = (req, res) =>
+{
+    if (req.headers.authorization.username)
+    {
+        const {picture_id} = req.body
+        documentPicture.deleteOne({_id: picture_id}, err =>
+        {
+            if (err) res.status(400).send(err)
+            else res.send({message: "done!"})
+        })
+    }
+    else res.status(403).send({message: "don't have permission babe!"})
+}
+
+const addDocumentFilm = (req, res) =>
+{
+    if (req.headers.authorization.username)
+    {
+        const {document_id, description} = req.body
+        const file = req.files ? req.files.file : null
+        if (file && document_id)
+        {
+            saveFile({file: file, folder: "videos"})
+                .then(file => new documentFilm({file, description, document_id}).save((err, created) =>
+                {
+                    if (err) res.status(400).send(err)
+                    else res.send(created)
+                }))
+        }
+        else res.status.send({message: "please send document_id && file"})
+    }
+    else res.status(403).send({message: "don't have permission babe!"})
+}
+
+const removeDocumentFilm = (req, res) =>
+{
+    if (req.headers.authorization.username)
+    {
+        const {film_id} = req.body
+        documentFilm.deleteOne({_id: film_id}, err =>
+        {
+            if (err) res.status(400).send(err)
+            else res.send({message: "done!"})
+        })
+    }
+    else res.status(403).send({message: "don't have permission babe!"})
+}
+
 const documentController = {
     addCategory,
     removeCategory,
     getCategories,
     getDocuments,
     addDocument,
+    updateDocument,
     getDocumentById,
     addDocumentCategory,
     deleteDocumentCategory,
+    addDocumentPicture,
+    removeDocumentPicture,
+    addDocumentFilm,
+    removeDocumentFilm,
 }
 
 export default documentController

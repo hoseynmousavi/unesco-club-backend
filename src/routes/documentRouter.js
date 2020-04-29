@@ -5,10 +5,19 @@ const documentRouter = (app) =>
     app.route("/document")
         .get(documentController.getDocuments)
         .post(documentController.addDocument)
+        .patch(documentController.updateDocument)
 
     app.route("/document-category")
-        .get(documentController.addDocumentCategory)
-        .post(documentController.deleteDocumentCategory)
+        .post(documentController.addDocumentCategory)
+        .delete(documentController.deleteDocumentCategory)
+
+    app.route("/document-picture")
+        .post(documentController.addDocumentPicture)
+        .delete(documentController.removeDocumentPicture)
+
+    app.route("/document-film")
+        .post(documentController.addDocumentFilm)
+        .delete(documentController.removeDocumentFilm)
 
     app.route("/document/category")
         .get(documentController.getCategories)
