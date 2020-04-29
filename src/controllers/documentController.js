@@ -222,44 +222,84 @@ const saveFilms = (films, document_id, newDocument) =>
 const getDocumentById = (req, res) =>
 {
     const {document_id} = req.params
-    document.findOne({is_deleted: false, _id: document_id}, (err, takenDocument) =>
+    if (document_id)
     {
-        if (err) res.status(400).send(err)
-        else
+        document.findOne({is_deleted: false, _id: document_id}, (err, takenDocument) =>
         {
-            documentPicture.find({document_id: takenDocument._id}, (err, pictures) =>
+            if (err) res.status(400).send(err)
+            else
+            {
+                documentPicture.find({document_id: takenDocument._id}, (err, pictures) =>
+                {
+                    if (err) res.status(400).send(err)
+                    else
+                    {
+                        documentFilm.find({document_id: takenDocument._id}, (err, films) =>
+                        {
+                            if (err) res.status(400).send(err)
+                            else
+                            {
+                                documentCategory.find({document_id: takenDocument._id}, (err, docCats) =>
+                                {
+                                    if (err) res.status(400).send(err)
+                                    else
+                                    {
+                                        category.find({_id: {$in: docCats.reduce((sum, docCat) => [...sum, docCat.category_id], [])}}, (err, categories) =>
+                                        {
+                                            if (err) res.status(400).send(err)
+                                            else
+                                            {
+                                                let documentObject = takenDocument.toJSON()
+                                                documentObject = {...documentObject, pictures, films, categories}
+                                                res.send(documentObject)
+                                            }
+                                        })
+                                    }
+                                })
+                            }
+                        })
+                    }
+                })
+            }
+        })
+    }
+    else res.status(400).send({message: "send document_id!"})
+}
+
+const addDocumentCategory = (req, res) =>
+{
+    if (req.headers.authorization.username)
+    {
+        const {category_id, document_id} = req.body
+        if (category_id && document_id)
+        {
+            new documentCategory({category_id, document_id}).save((err) =>
             {
                 if (err) res.status(400).send(err)
-                else
-                {
-                    documentFilm.find({document_id: takenDocument._id}, (err, films) =>
-                    {
-                        if (err) res.status(400).send(err)
-                        else
-                        {
-                            documentCategory.find({document_id: takenDocument._id}, (err, docCats) =>
-                            {
-                                if (err) res.status(400).send(err)
-                                else
-                                {
-                                    category.find({_id: {$in: docCats.reduce((sum, docCat) => [...sum, docCat.category_id], [])}}, (err, categories) =>
-                                    {
-                                        if (err) res.status(400).send(err)
-                                        else
-                                        {
-                                            let documentObject = takenDocument.toJSON()
-                                            documentObject = {...documentObject, pictures, films, categories}
-                                            res.send(documentObject)
-                                        }
-                                    })
-                                }
-                            })
-                        }
-                    })
-                }
+                else res.send({message: "done!"})
             })
         }
-    })
+        else res.status(400).send({message: "send category_id && document_id!"})
+    }
+    else res.status(403).send({message: "don't have permission babe!"})
+}
+
+const deleteDocumentCategory = (req, res) =>
+{
+    if (req.headers.authorization.username)
+    {
+        const {category_id, document_id} = req.body
+        if (category_id && document_id)
+        {
+            documentCategory.deleteOne({category_id, document_id}, err =>
+            {
+                if (err) res.status(400).send(err)
+                else res.send({message: "done!"})
+            })
+        }
+        else res.status(400).send({message: "send category_id && document_id!"})
+    }
+    else res.status(403).send({message: "don't have permission babe!"})
 }
 
 const documentController = {
@@ -269,6 +309,8 @@ const documentController = {
     getDocuments,
     addDocument,
     getDocumentById,
+    addDocumentCategory,
+    deleteDocumentCategory,
 }
 
 export default documentController
