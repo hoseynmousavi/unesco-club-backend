@@ -67,7 +67,18 @@ const getCategories = (req, res) =>
     })
 }
 
-const getDocuments = (req, res) => // it could be without all of these queries if in front these shits don't come up all together
+const getDocumentsForUsers = (req, res) =>
+{
+    const limit = parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 5
+    const skip = (req.query.page - 1 > 0 ? req.query.page - 1 : 0) * limit
+    document.find({is_deleted: false}, null, {sort: "-created_date", skip, limit}, (err, documents) =>
+    {
+        if (err) res.status(400).send(err)
+        else res.send(documents)
+    })
+}
+
+const getDocuments = (req, res) =>
 {
     const limit = parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 5
     const skip = (req.query.page - 1 > 0 ? req.query.page - 1 : 0) * limit
@@ -422,6 +433,7 @@ const documentController = {
     addCategory,
     removeCategory,
     getCategories,
+    getDocumentsForUsers,
     getDocuments,
     addDocument,
     updateDocument,

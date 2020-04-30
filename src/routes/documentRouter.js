@@ -2,6 +2,9 @@ import documentController from "../controllers/documentController"
 
 const documentRouter = (app) =>
 {
+    app.route("/documents")
+        .get(documentController.getDocumentsForUsers)
+
     app.route("/document")
         .get(documentController.getDocuments)
         .post(documentController.addDocument)
