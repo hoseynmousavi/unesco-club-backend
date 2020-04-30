@@ -12,10 +12,12 @@ const documentRouter = (app) =>
         .delete(documentController.deleteDocumentCategory)
 
     app.route("/document-picture")
+        .get(documentController.getPictures)
         .post(documentController.addDocumentPicture)
         .delete(documentController.removeDocumentPicture)
 
     app.route("/document-film")
+        .get(documentController.getFilms)
         .post(documentController.addDocumentFilm)
         .delete(documentController.removeDocumentFilm)
 

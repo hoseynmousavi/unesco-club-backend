@@ -396,6 +396,28 @@ const removeDocumentFilm = (req, res) =>
     else res.status(403).send({message: "don't have permission babe!"})
 }
 
+const getPictures = (req, res) =>
+{
+    const limit = parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 5
+    const skip = (req.query.page - 1 > 0 ? req.query.page - 1 : 0) * limit
+    documentPicture.find(null, null, {sort: "-created_date", skip, limit}, (err, pictures) =>
+    {
+        if (err) res.status(400).send(err)
+        else res.send(pictures)
+    })
+}
+
+const getFilms = (req, res) =>
+{
+    const limit = parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 5
+    const skip = (req.query.page - 1 > 0 ? req.query.page - 1 : 0) * limit
+    documentFilm.find(null, null, {sort: "-created_date", skip, limit}, (err, films) =>
+    {
+        if (err) res.status(400).send(err)
+        else res.send(films)
+    })
+}
+
 const documentController = {
     addCategory,
     removeCategory,
@@ -410,6 +432,8 @@ const documentController = {
     removeDocumentPicture,
     addDocumentFilm,
     removeDocumentFilm,
+    getPictures,
+    getFilms,
 }
 
 export default documentController
