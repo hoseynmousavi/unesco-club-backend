@@ -4,6 +4,18 @@ import saveFile from "../functions/saveFile"
 
 const user = mongoose.model("user", userModel)
 
+const getUsersForUsers = (req, res) =>
+{
+    const limit = parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 5
+    const skip = (req.query.page - 1 > 0 ? req.query.page - 1 : 0) * limit
+    const fields = "email name major grade university birth_date_year avatar range_of_activity specializations familiarity_with_language familiarity_with_area familiarity_with_tourism experience current_organ description created_date"
+    user.find({is_deleted: false, is_verified: true}, fields, null, {sort: "-created_date", skip, limit}, (err, users) =>
+    {
+        if (err) res.status(400).send(err)
+        else res.send(users)
+    })
+}
+
 const getUsers = (req, res) =>
 {
     if (req.headers.authorization && req.headers.authorization.username)
@@ -87,6 +99,7 @@ const removeUser = (req, res) =>
 }
 
 const userController = {
+    getUsersForUsers,
     getUsers,
     signUp,
     verifyUser,
