@@ -16,6 +16,22 @@ const getUsersForUsers = (req, res) =>
     })
 }
 
+const getUserByIdForUsers = (req, res) =>
+{
+    const {user_id} = req.params
+    if (user_id)
+    {
+        const fields = "email name major grade university birth_date_year avatar range_of_activity specializations familiarity_with_language familiarity_with_area familiarity_with_tourism experience current_organ description created_date"
+        user.findOne({is_deleted: false, is_verified: true, _id: user_id}, fields, null, (err, takenUser) =>
+        {
+            if (err) res.status(400).send(err)
+            else if (!takenUser) res.status(404).send({message: "not found"})
+            else res.send(takenUser)
+        })
+    }
+    else res.status(400).send("send user_id!")
+}
+
 const getUsers = (req, res) =>
 {
     if (req.headers.authorization && req.headers.authorization.username)
@@ -100,6 +116,7 @@ const removeUser = (req, res) =>
 
 const userController = {
     getUsersForUsers,
+    getUserByIdForUsers,
     getUsers,
     signUp,
     verifyUser,

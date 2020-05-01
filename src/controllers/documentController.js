@@ -238,6 +238,7 @@ const getDocumentById = (req, res) =>
         document.findOne({is_deleted: false, _id: document_id}, (err, takenDocument) =>
         {
             if (err) res.status(400).send(err)
+            else if (!takenDocument) res.status(404).send({message: "not found"})
             else
             {
                 documentPicture.find({document_id: takenDocument._id}, (err, pictures) =>
