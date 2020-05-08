@@ -15,6 +15,9 @@ const userRouter = (app) =>
 
     app.route("/user/verify")
         .post(userController.verifyUser)
+
+    app.route("/user/tick")
+        .post(userController.tickUser)
 }
 
 export default userRouter

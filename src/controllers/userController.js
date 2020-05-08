@@ -8,7 +8,7 @@ const getUsersForUsers = (req, res) =>
 {
     const limit = parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 5
     const skip = (req.query.page - 1 > 0 ? req.query.page - 1 : 0) * limit
-    const fields = "email name major grade university birth_date_year avatar range_of_activity specializations familiarity_with_language familiarity_with_area familiarity_with_tourism experience current_organ description created_date"
+    const fields = "have_tick email name major grade university birth_date_year avatar range_of_activity specializations familiarity_with_language familiarity_with_area familiarity_with_tourism experience current_organ description created_date"
     user.find({is_deleted: false, is_verified: true}, fields, {sort: "-created_date", skip, limit}, (err, users) =>
     {
         if (err) res.status(400).send(err)
@@ -21,7 +21,7 @@ const getUserByIdForUsers = (req, res) =>
     const {user_id} = req.params
     if (user_id)
     {
-        const fields = "email name major grade university birth_date_year avatar range_of_activity specializations familiarity_with_language familiarity_with_area familiarity_with_tourism experience current_organ description created_date"
+        const fields = "have_tick email name major grade university birth_date_year avatar range_of_activity specializations familiarity_with_language familiarity_with_area familiarity_with_tourism experience current_organ description created_date"
         user.findOne({is_deleted: false, is_verified: true, _id: user_id}, fields, null, (err, takenUser) =>
         {
             if (err) res.status(400).send(err)
@@ -91,6 +91,29 @@ const verifyUser = (req, res) =>
     else res.status(403).send({message: "don't have permission babe!"})
 }
 
+const tickUser = (req, res) =>
+{
+    if (req.headers.authorization.username)
+    {
+        const {user_id, have_tick} = req.body
+        if (user_id && have_tick !== undefined)
+        {
+            user.findOneAndUpdate(
+                {_id: user_id, is_deleted: false},
+                {have_tick},
+                {new: true, useFindAndModify: false, runValidators: true},
+                (err, _) =>
+                {
+                    if (err) res.status(400).send(err)
+                    else res.send({message: "done!"})
+                },
+            )
+        }
+        else res.status(400).send({message: "send user_id && have_tick"})
+    }
+    else res.status(403).send({message: "don't have permission babe!"})
+}
+
 const removeUser = (req, res) =>
 {
     if (req.headers.authorization.username)
@@ -120,6 +143,7 @@ const userController = {
     getUsers,
     signUp,
     verifyUser,
+    tickUser,
     removeUser,
 }
 

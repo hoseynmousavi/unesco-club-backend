@@ -7,6 +7,10 @@ const userModel = new schema({
         type: Boolean,
         default: false,
     },
+    have_tick: {
+        type: Boolean,
+        default: false,
+    },
     phone: {
         type: String,
         unique: true,
