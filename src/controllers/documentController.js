@@ -412,7 +412,7 @@ const getPictures = (req, res) =>
 {
     const limit = parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 5
     const skip = (req.query.page - 1 > 0 ? req.query.page - 1 : 0) * limit
-    documentPicture.find(null, null, {sort: "-created_date", skip, limit}, (err, pictures) =>
+    documentPicture.find({slider: true}, null, {sort: "-created_date", skip, limit}, (err, pictures) =>
     {
         if (err) res.status(400).send(err)
         else res.send(pictures)
