@@ -159,7 +159,7 @@ const addDocument = (req, res) =>
                         if (req.files)
                         {
                             const keys = Object.keys(req.files).filter(file => file.includes("picture"))
-                            keys.forEach(key => pictures.push({file: req.files[key], description: req.body[key]}))
+                            keys.forEach(key => pictures.push({file: req.files[key], description: req.body[key], slider: req.body[key + "slider"]}))
                         }
 
                         saveCategories(categories, createdDocument._id, newDocument).then(() => savePictures(pictures, createdDocument._id, newDocument).then(() => saveFilms(videos, createdDocument._id, newDocument).then(() => res.send(newDocument))))
@@ -199,7 +199,7 @@ const savePictures = (pictures, document_id, newDocument) =>
             pictures.forEach((item, index) =>
             {
                 saveFile({file: item.file, folder: "pictures"})
-                    .then(file => new documentPicture({file, description: item.description, document_id}).save((err, created) =>
+                    .then(file => new documentPicture({file, description: item.description, slider: item.slider, document_id}).save((err, created) =>
                     {
                         newDocument.pictures = [...newDocument.pictures || [], created]
                         if (index === pictures.length - 1) resolve()
