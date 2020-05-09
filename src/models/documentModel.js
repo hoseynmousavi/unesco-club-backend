@@ -18,6 +18,10 @@ const documentModel = new schema({
     location: {
         type: String,
     },
+    is_route: {
+        type: Boolean,
+        default: false,
+    },
     is_deleted: {
         type: Boolean,
         default: false,
