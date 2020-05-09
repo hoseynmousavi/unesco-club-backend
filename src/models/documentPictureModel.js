@@ -12,6 +12,10 @@ const documentPictureModel = new schema({
     file: {
         type: String,
     },
+    slider: {
+        type: Boolean,
+        default: false,
+    },
     created_date: {
         type: Date,
         default: Date.now,

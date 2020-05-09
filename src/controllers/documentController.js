@@ -344,12 +344,12 @@ const addDocumentPicture = (req, res) =>
 {
     if (req.headers.authorization.username)
     {
-        const {document_id, description} = req.body
+        const {document_id, description, slider} = req.body
         const file = req.files ? req.files.file : null
         if (file && document_id)
         {
             saveFile({file: file, folder: "pictures"})
-                .then(file => new documentPicture({file, description, document_id}).save((err, created) =>
+                .then(file => new documentPicture({file, description, document_id, slider}).save((err, created) =>
                 {
                     if (err) res.status(400).send(err)
                     else res.send(created)
@@ -419,6 +419,25 @@ const getPictures = (req, res) =>
     })
 }
 
+const updatePicture = (req, res) =>
+{
+    if (req.headers.authorization.username)
+    {
+        const {picture_id, slider} = req.body
+        documentPicture.findOneAndUpdate(
+            {_id: picture_id},
+            {slider},
+            {new: true, useFindAndModify: false, runValidators: true},
+            (err, updated) =>
+            {
+                if (err) res.status(400).send(err)
+                else res.send(updated)
+            },
+        )
+    }
+    else res.status(403).send({message: "don't have permission babe!"})
+}
+
 const getFilms = (req, res) =>
 {
     const limit = parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 5
@@ -446,6 +465,7 @@ const documentController = {
     addDocumentFilm,
     removeDocumentFilm,
     getPictures,
+    updatePicture,
     getFilms,
 }
 

@@ -16,6 +16,7 @@ const documentRouter = (app) =>
 
     app.route("/document-picture")
         .get(documentController.getPictures)
+        .patch(documentController.updatePicture)
         .post(documentController.addDocumentPicture)
         .delete(documentController.removeDocumentPicture)
 
