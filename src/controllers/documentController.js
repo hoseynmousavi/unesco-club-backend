@@ -341,6 +341,29 @@ const updateDocument = (req, res) =>
     else res.status(403).send({message: "don't have permission babe!"})
 }
 
+const deleteDocument = (req, res) =>
+{
+    if (req.headers.authorization.username)
+    {
+        const {document_id} = req.body
+        if (document_id)
+        {
+            document.findOneAndUpdate(
+                {_id: document_id},
+                {is_deleted: true},
+                {new: true, useFindAndModify: false, runValidators: true},
+                (err, _) =>
+                {
+                    if (err) res.status(400).send(err)
+                    else res.send({message: "done!"})
+                },
+            )
+        }
+        else res.status(400).send({message: "send document_id!"})
+    }
+    else res.status(403).send({message: "don't have permission babe!"})
+}
+
 const addDocumentPicture = (req, res) =>
 {
     if (req.headers.authorization.username)
@@ -458,6 +481,7 @@ const documentController = {
     getDocuments,
     addDocument,
     updateDocument,
+    deleteDocument,
     getDocumentById,
     addDocumentCategory,
     deleteDocumentCategory,

@@ -9,6 +9,7 @@ const documentRouter = (app) =>
         .get(documentController.getDocuments)
         .post(documentController.addDocument)
         .patch(documentController.updateDocument)
+        .delete(documentController.deleteDocument)
 
     app.route("/document-category")
         .post(documentController.addDocumentCategory)
