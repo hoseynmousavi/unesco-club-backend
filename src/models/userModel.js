@@ -81,6 +81,9 @@ const userModel = new schema({
     current_organ: {
         type: String,
     },
+    instagram: {
+        type: String,
+    },
     description: {
         type: String,
         required: "Enter description!",
