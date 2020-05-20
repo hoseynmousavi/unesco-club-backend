@@ -551,6 +551,17 @@ const getFilms = (req, res) =>
     })
 }
 
+const getAparats = (req, res) =>
+{
+    const limit = parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 5
+    const skip = (req.query.page - 1 > 0 ? req.query.page - 1 : 0) * limit
+    documentAparat.find(null, null, {sort: "-created_date", skip, limit}, (err, aparats) =>
+    {
+        if (err) res.status(400).send(err)
+        else res.send(aparats)
+    })
+}
+
 const documentController = {
     addCategory,
     removeCategory,
@@ -572,6 +583,7 @@ const documentController = {
     getFilms,
     addDocumentAparat,
     removeDocumentAparat,
+    getAparats,
 }
 
 export default documentController
