@@ -5,11 +5,13 @@ import categoryModel from "../models/categoryModel"
 import documentCategoryModel from "../models/documentCategoryModel"
 import documentFilmModel from "../models/documentFilmModel"
 import documentPictureModel from "../models/documentPictureModel"
+import documentAparatModel from "../models/documentAparatModel"
 
 const document = mongoose.model("document", documentModel)
 const category = mongoose.model("category", categoryModel)
 const documentCategory = mongoose.model("documentCategory", documentCategoryModel)
 const documentFilm = mongoose.model("documentFilm", documentFilmModel)
+const documentAparat = mongoose.model("documentAparat", documentAparatModel)
 const documentPicture = mongoose.model("documentPicture", documentPictureModel)
 
 const addCategory = (req, res) =>
@@ -93,34 +95,44 @@ const getDocuments = (req, res) =>
                 if (err) res.status(400).send(err)
                 else
                 {
-                    documentFilm.find({document_id: {$in: documents.reduce((sum, doc) => [...sum, doc._id], [])}}, (err, films) =>
+                    documentAparat.find({document_id: {$in: documents.reduce((sum, doc) => [...sum, doc._id], [])}}, (err, aparats) =>
                     {
                         if (err) res.status(400).send(err)
                         else
                         {
-                            documentCategory.find({document_id: {$in: documents.reduce((sum, doc) => [...sum, doc._id], [])}}, (err, docCats) =>
+                            documentFilm.find({document_id: {$in: documents.reduce((sum, doc) => [...sum, doc._id], [])}}, (err, films) =>
                             {
                                 if (err) res.status(400).send(err)
                                 else
                                 {
-                                    category.find({_id: {$in: docCats.reduce((sum, docCat) => [...sum, docCat.category_id], [])}}, (err, categories) =>
+                                    documentCategory.find({document_id: {$in: documents.reduce((sum, doc) => [...sum, doc._id], [])}}, (err, docCats) =>
                                     {
                                         if (err) res.status(400).send(err)
                                         else
                                         {
-                                            const documentsObject = documents.reduce((sum, doc) => ({...sum, [doc._id]: doc.toJSON()}), {})
-                                            const categoriesObject = categories.reduce((sum, cat) => ({...sum, [cat._id]: cat.toJSON()}), {})
-                                            pictures.forEach(pic =>
+                                            category.find({_id: {$in: docCats.reduce((sum, docCat) => [...sum, docCat.category_id], [])}}, (err, categories) =>
                                             {
-                                                documentsObject[pic.document_id] = {...documentsObject[pic.document_id], pictures: [...documentsObject[pic.document_id].pictures || [], {...pic.toJSON()}]}
+                                                if (err) res.status(400).send(err)
+                                                else
+                                                {
+                                                    const documentsObject = documents.reduce((sum, doc) => ({...sum, [doc._id]: doc.toJSON()}), {})
+                                                    const categoriesObject = categories.reduce((sum, cat) => ({...sum, [cat._id]: cat.toJSON()}), {})
+                                                    pictures.forEach(pic =>
+                                                    {
+                                                        documentsObject[pic.document_id] = {...documentsObject[pic.document_id], pictures: [...documentsObject[pic.document_id].pictures || [], {...pic.toJSON()}]}
+                                                    })
+                                                    aparats.forEach(aparat =>
+                                                        documentsObject[aparat.document_id] = {...documentsObject[aparat.document_id], aparats: [...documentsObject[aparat.document_id].aparats || [], {...aparat.toJSON()}]},
+                                                    )
+                                                    films.forEach(film =>
+                                                        documentsObject[film.document_id] = {...documentsObject[film.document_id], films: [...documentsObject[film.document_id].films || [], {...film.toJSON()}]},
+                                                    )
+                                                    docCats.forEach(docCat =>
+                                                        documentsObject[docCat.document_id] = {...documentsObject[docCat.document_id], categories: [...documentsObject[docCat.document_id].categories || [], {...categoriesObject[docCat.category_id]}]},
+                                                    )
+                                                    res.send(Object.values(documentsObject))
+                                                }
                                             })
-                                            films.forEach(film =>
-                                                documentsObject[film.document_id] = {...documentsObject[film.document_id], films: [...documentsObject[film.document_id].films || [], {...film.toJSON()}]},
-                                            )
-                                            docCats.forEach(docCat =>
-                                                documentsObject[docCat.document_id] = {...documentsObject[docCat.document_id], categories: [...documentsObject[docCat.document_id].categories || [], {...categoriesObject[docCat.category_id]}]},
-                                            )
-                                            res.send(Object.values(documentsObject))
                                         }
                                     })
                                 }
@@ -149,6 +161,10 @@ const addDocument = (req, res) =>
                         const newDocument = {...createdDocument.toJSON()}
                         const categories = req.body.categories ? JSON.parse(req.body.categories) : []
 
+                        let aparats = []
+                        const keys = Object.keys(req.body).filter(file => file.includes("aparat-link"))
+                        keys.forEach(key => aparats.push({link: req.body[key], description: req.body[key.replace("-link", "")]}))
+
                         let videos = []
                         if (req.files)
                         {
@@ -163,7 +179,11 @@ const addDocument = (req, res) =>
                             keys.forEach(key => pictures.push({file: req.files[key], description: req.body[key], slider: req.body[key + "slider"]}))
                         }
 
-                        saveCategories(categories, createdDocument._id, newDocument).then(() => savePictures(pictures, createdDocument._id, newDocument).then(() => saveFilms(videos, createdDocument._id, newDocument).then(() => res.send(newDocument))))
+                        saveCategories(categories, createdDocument._id, newDocument)
+                            .then(() => saveAparats(aparats, createdDocument._id, newDocument)
+                                .then(() => savePictures(pictures, createdDocument._id, newDocument)
+                                    .then(() => saveFilms(videos, createdDocument._id, newDocument)
+                                        .then(() => res.send(newDocument)))))
                     }
                 })
             })
@@ -231,6 +251,25 @@ const saveFilms = (films, document_id, newDocument) =>
     })
 }
 
+const saveAparats = (aparats, document_id, newDocument) =>
+{
+    return new Promise(resolve =>
+    {
+        if (aparats.length > 0)
+        {
+            aparats.forEach((item, index) =>
+            {
+                new documentAparat({link: item.link, description: item.description, document_id}).save((err, created) =>
+                {
+                    newDocument.aparats = [...newDocument.aparats || [], created]
+                    if (index === aparats.length - 1) resolve()
+                })
+            })
+        }
+        else resolve()
+    })
+}
+
 const getDocumentById = (req, res) =>
 {
     const {document_id} = req.params
@@ -247,24 +286,31 @@ const getDocumentById = (req, res) =>
                     if (err) res.status(400).send(err)
                     else
                     {
-                        documentFilm.find({document_id: takenDocument._id}, (err, films) =>
+                        documentAparat.find({document_id: takenDocument._id}, (err, aparats) =>
                         {
                             if (err) res.status(400).send(err)
                             else
                             {
-                                documentCategory.find({document_id: takenDocument._id}, (err, docCats) =>
+                                documentFilm.find({document_id: takenDocument._id}, (err, films) =>
                                 {
                                     if (err) res.status(400).send(err)
                                     else
                                     {
-                                        category.find({_id: {$in: docCats.reduce((sum, docCat) => [...sum, docCat.category_id], [])}}, (err, categories) =>
+                                        documentCategory.find({document_id: takenDocument._id}, (err, docCats) =>
                                         {
                                             if (err) res.status(400).send(err)
                                             else
                                             {
-                                                let documentObject = takenDocument.toJSON()
-                                                documentObject = {...documentObject, pictures, films, categories}
-                                                res.send(documentObject)
+                                                category.find({_id: {$in: docCats.reduce((sum, docCat) => [...sum, docCat.category_id], [])}}, (err, categories) =>
+                                                {
+                                                    if (err) res.status(400).send(err)
+                                                    else
+                                                    {
+                                                        let documentObject = takenDocument.toJSON()
+                                                        documentObject = {...documentObject, pictures, films, aparats, categories}
+                                                        res.send(documentObject)
+                                                    }
+                                                })
                                             }
                                         })
                                     }
@@ -432,6 +478,38 @@ const removeDocumentFilm = (req, res) =>
     else res.status(403).send({message: "don't have permission babe!"})
 }
 
+const addDocumentAparat = (req, res) =>
+{
+    if (req.headers.authorization.username)
+    {
+        const {document_id, description, link} = req.body
+        if (link && document_id)
+        {
+            new documentAparat({link, description, document_id}).save((err, created) =>
+            {
+                if (err) res.status(400).send(err)
+                else res.send(created)
+            })
+        }
+        else res.status.send({message: "please send document_id && link"})
+    }
+    else res.status(403).send({message: "don't have permission babe!"})
+}
+
+const removeDocumentAparat = (req, res) =>
+{
+    if (req.headers.authorization.username)
+    {
+        const {aparat_id} = req.body
+        documentAparat.deleteOne({_id: aparat_id}, err =>
+        {
+            if (err) res.status(400).send(err)
+            else res.send({message: "done!"})
+        })
+    }
+    else res.status(403).send({message: "don't have permission babe!"})
+}
+
 const getPictures = (req, res) =>
 {
     const limit = parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 5
@@ -492,6 +570,8 @@ const documentController = {
     getPictures,
     updatePicture,
     getFilms,
+    addDocumentAparat,
+    removeDocumentAparat,
 }
 
 export default documentController

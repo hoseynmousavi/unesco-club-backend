@@ -26,6 +26,10 @@ const documentRouter = (app) =>
         .post(documentController.addDocumentFilm)
         .delete(documentController.removeDocumentFilm)
 
+    app.route("/document-aparat")
+        .post(documentController.addDocumentAparat)
+        .delete(documentController.removeDocumentAparat)
+
     app.route("/document/category")
         .get(documentController.getCategories)
         .post(documentController.addCategory)
