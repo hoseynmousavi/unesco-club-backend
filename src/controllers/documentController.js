@@ -401,7 +401,35 @@ const deleteDocument = (req, res) =>
                 (err, _) =>
                 {
                     if (err) res.status(400).send(err)
-                    else res.send({message: "done!"})
+                    else
+                    {
+                        documentFilm.remove({document_id}, err =>
+                        {
+                            if (err) res.status(400).send(err)
+                            else
+                            {
+                                documentPicture.remove({document_id}, err =>
+                                {
+                                    if (err) res.status(400).send(err)
+                                    else
+                                    {
+                                        documentAparat.remove({document_id}, err =>
+                                        {
+                                            if (err) res.status(400).send(err)
+                                            else
+                                            {
+                                                documentCategory.remove({document_id}, err =>
+                                                {
+                                                    if (err) res.status(400).send(err)
+                                                    else res.send({message: "done!"})
+                                                })
+                                            }
+                                        })
+                                    }
+                                })
+                            }
+                        })
+                    }
                 },
             )
         }
