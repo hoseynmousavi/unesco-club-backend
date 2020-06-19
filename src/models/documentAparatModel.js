@@ -9,6 +9,9 @@ const documentAparatModel = new schema({
     description: {
         type: String,
     },
+    description_en: {
+        type: String,
+    },
     link: {
         type: String,
     },

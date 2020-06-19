@@ -9,6 +9,9 @@ const documentPictureModel = new schema({
     description: {
         type: String,
     },
+    description_en: {
+        type: String,
+    },
     file: {
         type: String,
     },

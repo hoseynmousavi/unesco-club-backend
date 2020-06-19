@@ -6,7 +6,13 @@ const documentModel = new schema({
     title: {
         type: String,
     },
+    title_en: {
+        type: String,
+    },
     summary: {
+        type: String,
+    },
+    summary_en: {
         type: String,
     },
     thumbnail: {
@@ -15,7 +21,13 @@ const documentModel = new schema({
     description: {
         type: String,
     },
+    description_en: {
+        type: String,
+    },
     location: {
+        type: String,
+    },
+    location_en: {
         type: String,
     },
     is_route: {

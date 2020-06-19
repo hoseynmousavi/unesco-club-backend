@@ -7,7 +7,14 @@ const categoryModel = new schema({
         type: String,
         required: "Enter name!",
     },
+    name_en: {
+        type: String,
+        required: "Enter name_en!",
+    },
     description: {
+        type: String,
+    },
+    description_en: {
         type: String,
     },
     picture: {
