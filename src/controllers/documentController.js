@@ -163,20 +163,20 @@ const addDocument = (req, res) =>
 
                         let aparats = []
                         const keys = Object.keys(req.body).filter(file => file.includes("aparat-link"))
-                        keys.forEach(key => aparats.push({link: req.body[key], description: req.body[key.replace("-link", "")]}))
+                        keys.forEach(key => aparats.push({link: req.body[key], description: req.body[key.replace("-link", "")], description_en: req.body[key.replace("-link", "-en")]}))
 
                         let videos = []
                         if (req.files)
                         {
                             const keys = Object.keys(req.files).filter(file => file.includes("film"))
-                            keys.forEach(key => videos.push({file: req.files[key], description: req.body[key]}))
+                            keys.forEach(key => videos.push({file: req.files[key], description: req.body[key], description_en: req.body[key + "en"]}))
                         }
 
                         let pictures = []
                         if (req.files)
                         {
                             const keys = Object.keys(req.files).filter(file => file.includes("picture"))
-                            keys.forEach(key => pictures.push({file: req.files[key], description: req.body[key], slider: req.body[key + "slider"]}))
+                            keys.forEach(key => pictures.push({file: req.files[key], description: req.body[key], description_en: req.body[key + "en"], slider: req.body[key + "slider"]}))
                         }
 
                         saveCategories(categories, createdDocument._id, newDocument)
@@ -220,7 +220,7 @@ const savePictures = (pictures, document_id, newDocument) =>
             pictures.forEach((item, index) =>
             {
                 saveFile({file: item.file, folder: "pictures"})
-                    .then(file => new documentPicture({file, description: item.description, slider: item.slider, document_id}).save((err, created) =>
+                    .then(file => new documentPicture({file, description: item.description, description_en: item.description_en, slider: item.slider, document_id}).save((err, created) =>
                     {
                         newDocument.pictures = [...newDocument.pictures || [], created]
                         if (index === pictures.length - 1) resolve()
@@ -240,7 +240,7 @@ const saveFilms = (films, document_id, newDocument) =>
             films.forEach((item, index) =>
             {
                 saveFile({file: item.file, folder: "videos"})
-                    .then(file => new documentFilm({file, description: item.description, document_id}).save((err, created) =>
+                    .then(file => new documentFilm({file, description: item.description, description_en: item.description_en, document_id}).save((err, created) =>
                     {
                         newDocument.films = [...newDocument.films || [], created]
                         if (index === films.length - 1) resolve()
@@ -259,7 +259,7 @@ const saveAparats = (aparats, document_id, newDocument) =>
         {
             aparats.forEach((item, index) =>
             {
-                new documentAparat({link: item.link, description: item.description, document_id}).save((err, created) =>
+                new documentAparat({link: item.link, description: item.description, description_en: item.description_en, document_id}).save((err, created) =>
                 {
                     newDocument.aparats = [...newDocument.aparats || [], created]
                     if (index === aparats.length - 1) resolve()
